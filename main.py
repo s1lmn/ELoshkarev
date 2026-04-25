@@ -1,16 +1,45 @@
-# This is a sample Python script.
+from __future__ import annotations
 
-# Press ⌃R to execute it or replace it with your code.
-# Press Double ⇧ to search everywhere for classes, files, tool windows, actions, and settings.
+import argparse
+from pathlib import Path
 
-
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press ⌘F8 to toggle the breakpoint.
+from inmemory_db import ConsoleInterface, CsvFileDatabase, InMemoryDatabase, JsonFileDatabase
 
 
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    print_hi('PyCharm')
+def build_database(backend: str, data_dir: str | None = None):
+    if backend == "memory":
+        return InMemoryDatabase()
 
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+    storage_path = Path(data_dir) if data_dir else Path("data") / backend
+    if backend == "json":
+        return JsonFileDatabase(storage_path)
+    if backend == "csv":
+        return CsvFileDatabase(storage_path)
+
+    raise ValueError(f"Неизвестный backend: {backend}")
+
+
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Запуск консольной СУБД.")
+    parser.add_argument(
+        "--backend",
+        choices=("memory", "json", "csv"),
+        default="memory",
+        help="Тип хранилища данных.",
+    )
+    parser.add_argument(
+        "--data-dir",
+        help="Каталог для файлового backend. Для memory не используется.",
+    )
+    return parser.parse_args(argv)
+
+
+def main(argv: list[str] | None = None) -> None:
+    args = parse_args(argv)
+    database = build_database(args.backend, args.data_dir)
+    interface = ConsoleInterface(database=database)
+    interface.run()
+
+
+if __name__ == "__main__":
+    main()
