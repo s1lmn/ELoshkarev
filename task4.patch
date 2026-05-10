@@ -1,0 +1,1895 @@
+diff --git a/README.md b/README.md
+index 6fc15d9..6cf8204 100644
+--- a/README.md
++++ b/README.md
+@@ -1,140 +1,66 @@
+-## Описание проекта
++# Файловая СУБД на JSON
+ 
+-Проект представляет собой консольную СУБД с объектно-ориентированной архитектурой.
+-Приложение поддерживает три backend-а хранения:
+-
+-- `memory` - данные живут только во время работы программы;
+-- `json` - структура таблиц, записи и индексы сохраняются в JSON-файлах;
+-- `csv` - структура таблиц, записи и индексы сохраняются в CSV-файлах.
+-
+-Также реализована индексация по одному или нескольким полям для ускорения операций чтения.
++Проект расширяет объектно-ориентированную систему управления данными из предыдущей лабораторной работы и добавляет файловую СУБД. Программа поддерживает единый интерфейс для `in-memory` и `JSON`-реализации.
+ 
+ ## Структура проекта
+ 
+ ```text
+-project_root/
+-├── main.py
+-├── README.md
+-├── .gitignore
+-├── inmemory_db/
++PIOA-НомерГруппы/
++├── src/
++│   └── db/
++│       ├── __init__.py
++│       ├── __main__.py
++│       ├── tui.py
++│       └── backend/
++│           ├── __init__.py
++│           ├── database.py
++│           ├── errors.py
++│           ├── file.py
++│           ├── memory.py
++│           └── table.py
++├── data/
++├── tests/
+ │   ├── __init__.py
+-│   ├── cli.py
+-│   ├── database.py
+-│   ├── exceptions.py
+-│   ├── io_handler.py
+-│   ├── models.py
+-│   ├── storage.py
+-│   └── table.py
+-└── tests/
+-    ├── __init__.py
+-    ├── test_cli.py
+-    ├── test_database.py
+-    ├── test_file_databases.py
+-    ├── test_main.py
+-    ├── test_models.py
+-    └── test_table.py
++│   ├── test_file_database.py
++│   ├── test_main.py
++│   ├── test_memory_database.py
++│   ├── test_table.py
++│   └── test_tui.py
++└── README.md
+ ```
+ 
+ ## Назначение модулей
+ 
+-- `main.py` - разбор аргументов и запуск приложения.
+-- `inmemory_db/database.py` - реализации баз данных: in-memory, JSON и CSV.
+-- `inmemory_db/table.py` - таблица, CRUD-операции, сортировка и индексы.
+-- `inmemory_db/storage.py` - файловые адаптеры хранения для JSON и CSV.
+-- `inmemory_db/models.py` - схема таблиц, поля и преобразование типов.
+-- `inmemory_db/cli.py` - консольный интерфейс.
+-- `inmemory_db/exceptions.py` - пользовательские исключения.
+-- `tests/` - автоматизированные тесты.
++- `src/db/backend/table.py` - класс таблицы и операции над записями.
++- `src/db/backend/database.py` - общий интерфейс базы данных.
++- `src/db/backend/memory.py` - in-memory реализация базы данных.
++- `src/db/backend/file.py` - файловая реализация базы данных на JSON.
++- `src/db/backend/errors.py` - пользовательские исключения.
++- `src/db/tui.py` - текстовый интерфейс и выбор типа базы данных.
++- `tests/` - автоматизированные тесты для памяти, файлов и интерфейса.
+ 
+ ## Реализованная функциональность
+ 
+-- создание нескольких таблиц;
+-- добавление, чтение, обновление и удаление записей;
+-- фильтрация по одному или нескольким полям;
+-- сортировка записей по выбранному полю;
+-- создание индексов по одному или нескольким полям;
+-- использование индексов в операциях чтения;
+-- корректное обновление индексов после `insert`, `update` и `delete`;
+-- хранение данных в памяти, JSON или CSV;
+-- восстановление таблиц, записей и индексов после перезапуска программы;
+-- обработка ошибок пользовательского ввода и ошибок работы с файлами.
++- создание таблиц;
++- добавление записей;
++- чтение записей с фильтрацией;
++- работа с `in-memory` и `JSON` хранилищем через единый интерфейс;
++- сохранение таблиц на диск и восстановление после перезапуска;
++- обработка ошибок чтения файлов и некорректных пользовательских данных.
+ 
+ ## Различия между реализациями
+ 
+-- `InMemoryDatabase` не сохраняет данные на диск и подходит для временной работы.
+-- `JsonFileDatabase` сохраняет каждую таблицу в отдельный JSON-файл.
+-- `CsvFileDatabase` сохраняет схему, записи и индексы таблицы в набор CSV-файлов.
+-
+-Публичный интерфейс у всех реализаций одинаковый:
+-
+-- `create_table(...)`
+-- `get_table(...)`
+-- `list_tables()`
+-
+-Каждая таблица поддерживает:
++- `MemoryDatabase` хранит таблицы только в оперативной памяти.
++- `FileDatabase` сохраняет каждую таблицу в отдельный JSON-файл в каталоге `data/`.
+ 
+-- `insert(...)`
+-- `select(...)`
+-- `update(...)`
+-- `delete(...)`
+-- `sort_records(...)`
+-- `create_index(...)`
+-
+-## Запуск программы
+-
+-### In-memory режим
++## Запуск проекта
+ 
++```bash
++python3 -m src.db
+ ```
+-python3 main.py
+-```
+-
+-### JSON backend
+-
+-```
+-python3 main.py --backend json --data-dir ./data/json
+-```
+-
+-### CSV backend
+-
+-```
+-python3 main.py --backend csv --data-dir ./data/csv
+-```
+-
+-Если `--data-dir` не указан, используется каталог `data/json` или `data/csv` относительно корня проекта.
+ 
+ ## Запуск тестов
+ 
+-```
++```bash
+ python3 -m unittest discover -s tests -v
+ ```
+-
+-## Проверка покрытия
+-
+-Если установлен модуль `coverage`:
+-
+-```
+-python3 -m coverage run -m unittest discover -s tests
+-python3 -m coverage report -m
+-```
+-
+-Если `coverage` не установлен, можно воспользоваться стандартным модулем Python:
+-
+-```
+-python3 -m trace --count --summary --module unittest discover -s tests
+-```
+-
+-## Особенности хранения файлов
+-
+-### JSON
+-
+-Для каждой таблицы создаётся один файл:
+-
+-- `table_name.json`
+-
+-### CSV
+-
+-Для каждой таблицы создаётся набор файлов:
+-
+-- `table_name__schema.csv`
+-- `table_name__records.csv`
+-- `table_name__indexes.csv`
+diff --git a/inmemory_db/__init__.py b/inmemory_db/__init__.py
+deleted file mode 100644
+index 0b6b867..0000000
+--- a/inmemory_db/__init__.py
++++ /dev/null
+@@ -1,13 +0,0 @@
+-"""Пакет баз данных с несколькими вариантами хранения данных."""
+-
+-from .cli import ConsoleInterface
+-from .database import CsvFileDatabase, InMemoryDatabase, JsonFileDatabase
+-from .io_handler import ConsoleIO
+-
+-__all__ = [
+-    "ConsoleIO",
+-    "ConsoleInterface",
+-    "CsvFileDatabase",
+-    "InMemoryDatabase",
+-    "JsonFileDatabase",
+-]
+diff --git a/inmemory_db/cli.py b/inmemory_db/cli.py
+deleted file mode 100644
+index d8a557d..0000000
+--- a/inmemory_db/cli.py
++++ /dev/null
+@@ -1,225 +0,0 @@
+-from __future__ import annotations
+-
+-from collections.abc import Callable
+-
+-from .database import BaseDatabase, InMemoryDatabase
+-from .exceptions import DatabaseError, ValidationError
+-from .io_handler import ConsoleIO, IOHandler
+-from .models import FieldDefinition, SUPPORTED_TYPES
+-
+-
+-class ConsoleInterface:
+-
+-    def __init__(
+-        self,
+-        database: BaseDatabase | None = None,
+-        io_handler: IOHandler | None = None,
+-    ) -> None:
+-        self.database = database or InMemoryDatabase()
+-        self.io = io_handler or ConsoleIO()
+-        self._actions: dict[str, Callable[[], None]] = {
+-            "1": self._handle_create_table,
+-            "2": self._handle_insert,
+-            "3": self._handle_select,
+-            "4": self._handle_update,
+-            "5": self._handle_delete,
+-            "6": self._handle_sort,
+-            "7": self._handle_create_index,
+-            "8": self._handle_list_tables,
+-        }
+-
+-    def run(self) -> None:
+-        self._print_welcome()
+-
+-        while True:
+-            self._print_menu()
+-
+-            try:
+-                choice = self.io.input("Выберите действие: ").strip()
+-                if choice == "0":
+-                    self.io.output("Работа завершена.")
+-                    break
+-
+-                action = self._actions.get(choice)
+-                if action is None:
+-                    self.io.output("Неизвестная команда. Повторите ввод.")
+-                    continue
+-
+-                action()
+-            except DatabaseError as error:
+-                self.io.output(f"Ошибка: {error}")
+-            except KeyboardInterrupt:
+-                self.io.output("\nРабота завершена пользователем.")
+-                break
+-
+-    def _print_welcome(self) -> None:
+-        self.io.output("Консольная СУБД")
+-        self.io.output(f"Текущий backend: {self.database.backend_name}")
+-        self.io.output(
+-            "Сначала создайте хотя бы одну таблицу, затем добавляйте и запрашивайте записи."
+-        )
+-
+-    def _print_menu(self) -> None:
+-        self.io.output("\nМеню:")
+-        self.io.output("1. Создать таблицу")
+-        self.io.output("2. Добавить запись")
+-        self.io.output("3. Прочитать записи с фильтрацией")
+-        self.io.output("4. Обновить запись")
+-        self.io.output("5. Удалить запись")
+-        self.io.output("6. Отсортировать записи")
+-        self.io.output("7. Создать индекс")
+-        self.io.output("8. Показать список таблиц")
+-        self.io.output("0. Выход")
+-
+-    def _handle_create_table(self) -> None:
+-        table_name = self.io.input("Введите имя таблицы: ").strip()
+-        field_count = self._read_positive_int("Введите количество полей: ")
+-        fields: list[FieldDefinition] = []
+-
+-        self.io.output(f"Доступные типы: {', '.join(sorted(SUPPORTED_TYPES))}")
+-        for index in range(1, field_count + 1):
+-            field_name = self.io.input(f"Имя поля #{index}: ").strip()
+-            field_type = self.io.input(f"Тип поля #{index}: ").strip().lower()
+-            fields.append(FieldDefinition(name=field_name, type_name=field_type))
+-
+-        primary_key = self.io.input(
+-            "Введите имя поля, которое будет первичным ключом: "
+-        ).strip()
+-        self.database.create_table(table_name=table_name, fields=fields, primary_key=primary_key)
+-        self.io.output(f"Таблица '{table_name}' успешно создана.")
+-
+-    def _handle_insert(self) -> None:
+-        table = self._read_table()
+-        record_data = {}
+-
+-        self.io.output(f"Добавление записи в таблицу '{table.schema.name}'.")
+-        for field in table.schema.fields:
+-            prompt = f"{field.name} ({field.type_name}): "
+-            record_data[field.name] = self.io.input(prompt).strip()
+-
+-        inserted_record = table.insert(record_data)
+-        self.io.output(f"Запись добавлена: {inserted_record}")
+-
+-    def _handle_select(self) -> None:
+-        table = self._read_table()
+-        filters = self._read_filters(table.schema.name)
+-        records = table.select(filters)
+-        self._render_records(records, "Записи не найдены.")
+-
+-    def _handle_update(self) -> None:
+-        table = self._read_table()
+-        primary_key_name = table.schema.primary_key
+-        primary_key_value = self.io.input(
+-            f"Введите значение первичного ключа '{primary_key_name}': "
+-        ).strip()
+-        update_count = self._read_positive_int("Сколько полей нужно обновить: ")
+-        updated_values = {}
+-
+-        for index in range(1, update_count + 1):
+-            field_name = self.io.input(f"Имя обновляемого поля #{index}: ").strip()
+-            field_value = self.io.input(
+-                f"Новое значение для поля '{field_name}': "
+-            ).strip()
+-            updated_values[field_name] = field_value
+-
+-        updated_record = table.update(primary_key_value, updated_values)
+-        self.io.output(f"Запись обновлена: {updated_record}")
+-
+-    def _handle_delete(self) -> None:
+-        table = self._read_table()
+-        primary_key_name = table.schema.primary_key
+-        primary_key_value = self.io.input(
+-            f"Введите значение первичного ключа '{primary_key_name}' для удаления: "
+-        ).strip()
+-        deleted_record = table.delete(primary_key_value)
+-        self.io.output(f"Запись удалена: {deleted_record}")
+-
+-    def _handle_sort(self) -> None:
+-        table = self._read_table()
+-        field_name = self.io.input("Введите поле для сортировки: ").strip()
+-        descending = self._read_sort_direction()
+-        records = table.sort_records(field_name, descending=descending)
+-        self._render_records(records, "В таблице нет записей для сортировки.")
+-
+-    def _handle_create_index(self) -> None:
+-        table = self._read_table()
+-        raw_fields = self.io.input(
+-            "Введите одно или несколько полей через запятую: "
+-        ).strip()
+-        field_names = [field.strip() for field in raw_fields.split(",") if field.strip()]
+-        created_index = table.create_index(field_names)
+-        self.io.output(f"Индекс создан: {', '.join(created_index)}")
+-
+-    def _handle_list_tables(self) -> None:
+-        tables = self.database.list_tables()
+-        if not tables:
+-            self.io.output("Таблицы ещё не созданы.")
+-            return
+-
+-        self.io.output("Список таблиц:")
+-        for table in tables:
+-            field_descriptions = ", ".join(
+-                f"{field.name}:{field.type_name}" for field in table.schema.fields
+-            )
+-            index_descriptions = ", ".join("+".join(index) for index in table.list_indexes())
+-            indexes_part = index_descriptions if index_descriptions else "нет"
+-            self.io.output(
+-                f"- {table.schema.name} | PK: {table.schema.primary_key} | "
+-                f"Поля: {field_descriptions} | Записей: {table.count()} | "
+-                f"Индексы: {indexes_part}"
+-            )
+-
+-    def _read_table(self):
+-        table_name = self.io.input("Введите имя таблицы: ").strip()
+-        return self.database.get_table(table_name)
+-
+-    def _read_filters(self, table_name: str) -> dict[str, str]:
+-        wants_filters = self.io.input("Нужна фильтрация? (yes/no): ").strip().lower()
+-        if wants_filters in {"no", "n", "нет", "н"}:
+-            return {}
+-        if wants_filters not in {"yes", "y", "да", "д"}:
+-            raise ValidationError("Ответьте yes/no.")
+-
+-        filter_count = self._read_positive_int("Введите количество фильтров: ")
+-        filters: dict[str, str] = {}
+-
+-        for index in range(1, filter_count + 1):
+-            field_name = self.io.input(
+-                f"Поле фильтра #{index} для таблицы '{table_name}': "
+-            ).strip()
+-            field_value = self.io.input(
+-                f"Значение фильтра для поля '{field_name}': "
+-            ).strip()
+-            filters[field_name] = field_value
+-
+-        return filters
+-
+-    def _read_sort_direction(self) -> bool:
+-        direction = self.io.input(
+-            "Направление сортировки (asc/desc): "
+-        ).strip().lower()
+-        if direction == "asc":
+-            return False
+-        if direction == "desc":
+-            return True
+-        raise ValidationError("Используйте asc или desc.")
+-
+-    def _render_records(self, records: list[dict[str, object]], empty_message: str) -> None:
+-        if not records:
+-            self.io.output(empty_message)
+-            return
+-
+-        self.io.output(f"Найдено записей: {len(records)}")
+-        for index, record in enumerate(records, start=1):
+-            self.io.output(f"{index}. {record}")
+-
+-    def _read_positive_int(self, prompt: str) -> int:
+-        raw_value = self.io.input(prompt).strip()
+-        try:
+-            parsed_value = int(raw_value)
+-        except ValueError as error:
+-            raise ValidationError("Нужно ввести целое число.") from error
+-
+-        if parsed_value <= 0:
+-            raise ValidationError("Число должно быть больше нуля.")
+-        return parsed_value
+diff --git a/inmemory_db/database.py b/inmemory_db/database.py
+deleted file mode 100644
+index fac1b37..0000000
+--- a/inmemory_db/database.py
++++ /dev/null
+@@ -1,149 +0,0 @@
+-from __future__ import annotations
+-
+-from abc import ABC, abstractmethod
+-from pathlib import Path
+-
+-from .exceptions import SchemaError, TableNotFoundError
+-from .models import FieldDefinition, TableSchema
+-from .storage import CsvTableStorage, JsonTableStorage, TableStorage
+-from .table import Table
+-
+-
+-class BaseDatabase(ABC):
+-
+-    def __init__(self) -> None:
+-        self._tables: dict[str, Table] = {}
+-
+-    def create_table(
+-        self,
+-        table_name: str,
+-        fields: list[FieldDefinition],
+-        primary_key: str,
+-    ) -> Table:
+-        if self._table_exists(table_name):
+-            raise SchemaError(f"Таблица '{table_name}' уже существует.")
+-
+-        schema = TableSchema(name=table_name, fields=fields, primary_key=primary_key)
+-        table = self._build_table(schema)
+-        self._tables[table_name] = table
+-        self._after_table_created(table_name)
+-        return table
+-
+-    def get_table(self, table_name: str) -> Table:
+-        if table_name not in self._tables:
+-            if not self._stored_table_exists(table_name):
+-                raise TableNotFoundError(f"Таблица '{table_name}' не найдена.")
+-            self._tables[table_name] = self._load_table(table_name)
+-        return self._tables[table_name]
+-
+-    def list_tables(self) -> list[Table]:
+-        for table_name in self._stored_table_names():
+-            if table_name not in self._tables:
+-                self._tables[table_name] = self._load_table(table_name)
+-        return [self._tables[name] for name in sorted(self._tables)]
+-
+-    @property
+-    @abstractmethod
+-    def backend_name(self) -> str:
+-        """Удобочитаемое название бэкэнда."""
+-
+-    def _table_exists(self, table_name: str) -> bool:
+-        return table_name in self._tables or self._stored_table_exists(table_name)
+-
+-    @abstractmethod
+-    def _build_table(
+-        self,
+-        schema: TableSchema,
+-        records: list[dict[str, object]] | None = None,
+-        indexes: list[list[str]] | None = None,
+-    ) -> Table:
+-        """Создайте экземпляр таблицы для этого бэкэнда."""
+-
+-    def _after_table_created(self, table_name: str) -> None:
+-        """Хук для сохранения данных в только что созданной таблице."""
+-
+-    def _stored_table_exists(self, table_name: str) -> bool:
+-        return False
+-
+-    def _stored_table_names(self) -> list[str]:
+-        return []
+-
+-    def _load_table(self, table_name: str) -> Table:
+-        raise TableNotFoundError(f"Таблица '{table_name}' не найдена.")
+-
+-
+-class InMemoryDatabase(BaseDatabase):
+-
+-    backend_name = "memory"
+-
+-    def _build_table(
+-        self,
+-        schema: TableSchema,
+-        records: list[dict[str, object]] | None = None,
+-        indexes: list[list[str]] | None = None,
+-    ) -> Table:
+-        return Table(schema=schema, records=records, indexed_fields=indexes)
+-
+-
+-class FileDatabase(BaseDatabase):
+-
+-    def __init__(self, storage: TableStorage) -> None:
+-        super().__init__()
+-        self.storage = storage
+-
+-    def _build_table(
+-        self,
+-        schema: TableSchema,
+-        records: list[dict[str, object]] | None = None,
+-        indexes: list[list[str]] | None = None,
+-    ) -> Table:
+-        return Table(
+-            schema=schema,
+-            records=records,
+-            indexed_fields=indexes,
+-            save_callback=lambda table_name=schema.name: self._save_table(table_name),
+-        )
+-
+-    def _after_table_created(self, table_name: str) -> None:
+-        self._save_table(table_name)
+-
+-    def _stored_table_exists(self, table_name: str) -> bool:
+-        return self.storage.table_exists(table_name)
+-
+-    def _stored_table_names(self) -> list[str]:
+-        return self.storage.list_table_names()
+-
+-    def _load_table(self, table_name: str) -> Table:
+-        table_data = self.storage.load_table(table_name)
+-        schema = TableSchema.from_dict(table_data["schema"])
+-        return self._build_table(
+-            schema=schema,
+-            records=table_data.get("records", []),
+-            indexes=table_data.get("indexes", []),
+-        )
+-
+-    def _save_table(self, table_name: str) -> None:
+-        table = self._tables[table_name]
+-        self.storage.save_table(
+-            {
+-                "schema": table.schema.to_dict(),
+-                "records": table.export_records(),
+-                "indexes": [list(index_fields) for index_fields in table.list_indexes()],
+-            }
+-        )
+-
+-
+-class JsonFileDatabase(FileDatabase):
+-
+-    backend_name = "json"
+-
+-    def __init__(self, data_dir: str | Path) -> None:
+-        super().__init__(JsonTableStorage(data_dir))
+-
+-
+-class CsvFileDatabase(FileDatabase):
+-
+-    backend_name = "csv"
+-
+-    def __init__(self, data_dir: str | Path) -> None:
+-        super().__init__(CsvTableStorage(data_dir))
+diff --git a/inmemory_db/exceptions.py b/inmemory_db/exceptions.py
+deleted file mode 100644
+index f59bb6f..0000000
+--- a/inmemory_db/exceptions.py
++++ /dev/null
+@@ -1,29 +0,0 @@
+-"""Пользовательские исключения для проекта базы данных, работающей в оперативной памяти"""
+-
+-
+-class DatabaseError(Exception):
+-    """Базовое исключение для всех ошибок, связанных с базой данных"""
+-
+-
+-class ValidationError(DatabaseError):
+-    """Эта ошибка возникает, когда входные данные не соответствуют схеме таблицы"""
+-
+-
+-class SchemaError(DatabaseError):
+-    """Генерируется при недопустимой схеме таблицы"""
+-
+-
+-class TableNotFoundError(DatabaseError):
+-    """Генерируется, если запрошенная таблица не существует"""
+-
+-
+-class DuplicateRecordError(DatabaseError):
+-    """Эта ошибка возникает при попытке вставить запись с уже существующим первичным ключом"""
+-
+-
+-class RecordNotFoundError(DatabaseError):
+-    """Генерируется, если запрашиваемая запись не существует"""
+-
+-
+-class StorageError(DatabaseError):
+-    """Эта ошибка возникает, когда база данных не может читать или записывать постоянные данные"""
+diff --git a/inmemory_db/io_handler.py b/inmemory_db/io_handler.py
+deleted file mode 100644
+index ba07a3f..0000000
+--- a/inmemory_db/io_handler.py
++++ /dev/null
+@@ -1,21 +0,0 @@
+-from __future__ import annotations
+-
+-from typing import Protocol
+-
+-
+-class IOHandler(Protocol):
+-
+-    def input(self, prompt: str) -> str:
+-        """Прочитать строку от пользователя"""
+-
+-    def output(self, message: str) -> None:
+-        """Отобразить пользователю строку"""
+-
+-
+-class ConsoleIO:
+-
+-    def input(self, prompt: str) -> str:
+-        return input(prompt)
+-
+-    def output(self, message: str) -> None:
+-        print(message)
+diff --git a/inmemory_db/models.py b/inmemory_db/models.py
+deleted file mode 100644
+index 98cb118..0000000
+--- a/inmemory_db/models.py
++++ /dev/null
+@@ -1,121 +0,0 @@
+-from __future__ import annotations
+-
+-from dataclasses import dataclass
+-
+-from .exceptions import SchemaError, ValidationError
+-
+-SUPPORTED_TYPES: dict[str, type] = {
+-    "bool": bool,
+-    "float": float,
+-    "int": int,
+-    "str": str,
+-}
+-
+-
+-def is_valid_identifier(name: str) -> bool:
+-    if not name:
+-        return False
+-    return name.replace("_", "").isalnum()
+-
+-
+-def parse_bool(raw_value: object) -> bool:
+-    if isinstance(raw_value, bool):
+-        return raw_value
+-
+-    normalized = str(raw_value).strip().lower()
+-    truthy_values = {"1", "true", "yes", "y", "да", "д"}
+-    falsy_values = {"0", "false", "no", "n", "нет", "н"}
+-
+-    if normalized in truthy_values:
+-        return True
+-    if normalized in falsy_values:
+-        return False
+-
+-    raise ValidationError(
+-        "Некорректное булево значение. Используйте true/false, yes/no, 1/0."
+-    )
+-
+-
+-def convert_value(raw_value: object, type_name: str) -> object:
+-    if type_name not in SUPPORTED_TYPES:
+-        raise SchemaError(f"Неподдерживаемый тип данных: {type_name}")
+-
+-    if type_name == "bool":
+-        return parse_bool(raw_value)
+-    if type_name == "str":
+-        return str(raw_value).strip()
+-
+-    try:
+-        return SUPPORTED_TYPES[type_name](raw_value)
+-    except (TypeError, ValueError) as error:
+-        raise ValidationError(
+-            f"Не удалось преобразовать значение '{raw_value}' к типу {type_name}."
+-        ) from error
+-
+-
+-@dataclass(frozen=True)
+-class FieldDefinition:
+-
+-    name: str
+-    type_name: str
+-
+-    def __post_init__(self) -> None:
+-        if not is_valid_identifier(self.name):
+-            raise SchemaError(
+-                "Имя поля должно содержать только буквы, цифры и символ '_'."
+-            )
+-        if self.type_name not in SUPPORTED_TYPES:
+-            available_types = ", ".join(sorted(SUPPORTED_TYPES))
+-            raise SchemaError(
+-                f"Тип поля '{self.type_name}' не поддерживается. "
+-                f"Доступные типы: {available_types}."
+-            )
+-
+-    def to_dict(self) -> dict[str, str]:
+-        return {"name": self.name, "type_name": self.type_name}
+-
+-    @classmethod
+-    def from_dict(cls, data: dict[str, str]) -> "FieldDefinition":
+-        return cls(name=data["name"], type_name=data["type_name"])
+-
+-
+-@dataclass(frozen=True)
+-class TableSchema:
+-
+-    name: str
+-    fields: list[FieldDefinition]
+-    primary_key: str
+-
+-    def __post_init__(self) -> None:
+-        if not is_valid_identifier(self.name):
+-            raise SchemaError(
+-                "Имя таблицы должно содержать только буквы, цифры и символ '_'."
+-            )
+-        if not self.fields:
+-            raise SchemaError("Таблица должна содержать хотя бы одно поле.")
+-
+-        field_names = [field.name for field in self.fields]
+-        if len(set(field_names)) != len(field_names):
+-            raise SchemaError("Имена полей в таблице должны быть уникальными.")
+-        if self.primary_key not in field_names:
+-            raise SchemaError("Первичный ключ должен совпадать с одним из полей таблицы.")
+-
+-    @property
+-    def field_map(self) -> dict[str, FieldDefinition]:
+-        return {field.name: field for field in self.fields}
+-
+-    @property
+-    def field_names(self) -> list[str]:
+-        return [field.name for field in self.fields]
+-
+-    def to_dict(self) -> dict[str, object]:
+-        return {
+-            "name": self.name,
+-            "fields": [field.to_dict() for field in self.fields],
+-            "primary_key": self.primary_key,
+-        }
+-
+-    @classmethod
+-    def from_dict(cls, data: dict[str, object]) -> "TableSchema":
+-        fields = [FieldDefinition.from_dict(item) for item in data["fields"]]
+-        return cls(name=data["name"], fields=fields, primary_key=data["primary_key"])
+diff --git a/inmemory_db/storage.py b/inmemory_db/storage.py
+deleted file mode 100644
+index a148877..0000000
+--- a/inmemory_db/storage.py
++++ /dev/null
+@@ -1,200 +0,0 @@
+-from __future__ import annotations
+-
+-import csv
+-import json
+-from abc import ABC, abstractmethod
+-from pathlib import Path
+-
+-from .exceptions import StorageError
+-
+-
+-class TableStorage(ABC):
+-
+-    def __init__(self, data_dir: str | Path) -> None:
+-        self.data_dir = Path(data_dir)
+-        self.data_dir.mkdir(parents=True, exist_ok=True)
+-
+-    @abstractmethod
+-    def list_table_names(self) -> list[str]:
+-        """Возвращает имена всех сохраненных таблиц"""
+-
+-    @abstractmethod
+-    def table_exists(self, table_name: str) -> bool:
+-        """Проверяет, существует ли сохраненная таблица"""
+-
+-    @abstractmethod
+-    def save_table(self, table_data: dict[str, object]) -> None:
+-        """Сохранение схемы таблиц, записей и индексов"""
+-
+-    @abstractmethod
+-    def load_table(self, table_name: str) -> dict[str, object]:
+-        """Загрузка схемы таблицы, записей и индексов."""
+-
+-
+-class JsonTableStorage(TableStorage):
+-
+-    def list_table_names(self) -> list[str]:
+-        return sorted(path.stem for path in self.data_dir.glob("*.json"))
+-
+-    def table_exists(self, table_name: str) -> bool:
+-        return self._table_path(table_name).exists()
+-
+-    def save_table(self, table_data: dict[str, object]) -> None:
+-        table_name = table_data["schema"]["name"]
+-        try:
+-            with self._table_path(table_name).open("w", encoding="utf-8") as file:
+-                json.dump(table_data, file, ensure_ascii=False, indent=2)
+-        except OSError as error:
+-            raise StorageError(f"Не удалось сохранить JSON-таблицу '{table_name}'.") from error
+-
+-    def load_table(self, table_name: str) -> dict[str, object]:
+-        try:
+-            with self._table_path(table_name).open("r", encoding="utf-8") as file:
+-                return json.load(file)
+-        except FileNotFoundError as error:
+-            raise StorageError(f"Файл таблицы '{table_name}' не найден.") from error
+-        except (OSError, json.JSONDecodeError) as error:
+-            raise StorageError(f"Не удалось загрузить JSON-таблицу '{table_name}'.") from error
+-
+-    def _table_path(self, table_name: str) -> Path:
+-        return self.data_dir / f"{table_name}.json"
+-
+-
+-class CsvTableStorage(TableStorage):
+-
+-    def list_table_names(self) -> list[str]:
+-        suffix = "__schema.csv"
+-        table_names = []
+-        for path in self.data_dir.glob(f"*{suffix}"):
+-            table_names.append(path.name[: -len(suffix)])
+-        return sorted(table_names)
+-
+-    def table_exists(self, table_name: str) -> bool:
+-        return self._schema_path(table_name).exists()
+-
+-    def save_table(self, table_data: dict[str, object]) -> None:
+-        schema = table_data["schema"]
+-        table_name = schema["name"]
+-
+-        try:
+-            self._save_schema(table_name, schema)
+-            self._save_records(table_name, schema["fields"], table_data.get("records", []))
+-            self._save_indexes(table_name, table_data.get("indexes", []))
+-        except OSError as error:
+-            raise StorageError(f"Не удалось сохранить CSV-таблицу '{table_name}'.") from error
+-
+-    def load_table(self, table_name: str) -> dict[str, object]:
+-        try:
+-            schema = self._load_schema(table_name)
+-            records = self._load_records(table_name, schema["fields"])
+-            indexes = self._load_indexes(table_name)
+-            return {"schema": schema, "records": records, "indexes": indexes}
+-        except FileNotFoundError as error:
+-            raise StorageError(f"Файлы таблицы '{table_name}' не найдены.") from error
+-        except (OSError, csv.Error, json.JSONDecodeError, KeyError) as error:
+-            raise StorageError(f"Не удалось загрузить CSV-таблицу '{table_name}'.") from error
+-
+-    def _save_schema(self, table_name: str, schema: dict[str, object]) -> None:
+-        with self._schema_path(table_name).open("w", encoding="utf-8", newline="") as file:
+-            writer = csv.DictWriter(
+-                file,
+-                fieldnames=("field_name", "type_name", "is_primary_key"),
+-            )
+-            writer.writeheader()
+-            for field in schema["fields"]:
+-                writer.writerow(
+-                    {
+-                        "field_name": field["name"],
+-                        "type_name": field["type_name"],
+-                        "is_primary_key": str(field["name"] == schema["primary_key"]),
+-                    }
+-                )
+-
+-    def _save_records(
+-        self,
+-        table_name: str,
+-        fields: list[dict[str, str]],
+-        records: list[dict[str, object]],
+-    ) -> None:
+-        field_names = [field["name"] for field in fields]
+-        with self._records_path(table_name).open("w", encoding="utf-8", newline="") as file:
+-            writer = csv.DictWriter(file, fieldnames=field_names)
+-            writer.writeheader()
+-            for record in records:
+-                writer.writerow(
+-                    {
+-                        field_name: json.dumps(record[field_name], ensure_ascii=False)
+-                        for field_name in field_names
+-                    }
+-                )
+-
+-    def _save_indexes(self, table_name: str, indexes: list[list[str]]) -> None:
+-        with self._indexes_path(table_name).open("w", encoding="utf-8", newline="") as file:
+-            writer = csv.DictWriter(file, fieldnames=("fields",))
+-            writer.writeheader()
+-            for index_fields in indexes:
+-                writer.writerow({"fields": ",".join(index_fields)})
+-
+-    def _load_schema(self, table_name: str) -> dict[str, object]:
+-        fields: list[dict[str, str]] = []
+-        primary_key = None
+-
+-        with self._schema_path(table_name).open("r", encoding="utf-8", newline="") as file:
+-            reader = csv.DictReader(file)
+-            for row in reader:
+-                fields.append(
+-                    {
+-                        "name": row["field_name"],
+-                        "type_name": row["type_name"],
+-                    }
+-                )
+-                if row["is_primary_key"].lower() == "true":
+-                    primary_key = row["field_name"]
+-
+-        if primary_key is None:
+-            raise StorageError(f"В CSV-схеме таблицы '{table_name}' не указан первичный ключ.")
+-
+-        return {"name": table_name, "fields": fields, "primary_key": primary_key}
+-
+-    def _load_records(
+-        self,
+-        table_name: str,
+-        fields: list[dict[str, str]],
+-    ) -> list[dict[str, object]]:
+-        field_names = [field["name"] for field in fields]
+-        records: list[dict[str, object]] = []
+-
+-        with self._records_path(table_name).open("r", encoding="utf-8", newline="") as file:
+-            reader = csv.DictReader(file)
+-            for row in reader:
+-                records.append(
+-                    {
+-                        field_name: json.loads(row[field_name])
+-                        for field_name in field_names
+-                    }
+-                )
+-
+-        return records
+-
+-    def _load_indexes(self, table_name: str) -> list[list[str]]:
+-        indexes_path = self._indexes_path(table_name)
+-        if not indexes_path.exists():
+-            return []
+-
+-        indexes: list[list[str]] = []
+-        with indexes_path.open("r", encoding="utf-8", newline="") as file:
+-            reader = csv.DictReader(file)
+-            for row in reader:
+-                field_names = [field for field in row["fields"].split(",") if field]
+-                if field_names:
+-                    indexes.append(field_names)
+-        return indexes
+-
+-    def _schema_path(self, table_name: str) -> Path:
+-        return self.data_dir / f"{table_name}__schema.csv"
+-
+-    def _records_path(self, table_name: str) -> Path:
+-        return self.data_dir / f"{table_name}__records.csv"
+-
+-    def _indexes_path(self, table_name: str) -> Path:
+-        return self.data_dir / f"{table_name}__indexes.csv"
+diff --git a/inmemory_db/table.py b/inmemory_db/table.py
+deleted file mode 100644
+index 1b39095..0000000
+--- a/inmemory_db/table.py
++++ /dev/null
+@@ -1,257 +0,0 @@
+-from __future__ import annotations
+-
+-from copy import deepcopy
+-from typing import Callable, Iterable, Sequence
+-
+-from .exceptions import DuplicateRecordError, RecordNotFoundError, ValidationError
+-from .models import TableSchema, convert_value
+-
+-Record = dict[str, object]
+-IndexDefinition = tuple[str, ...]
+-IndexBucket = dict[tuple[object, ...], set[object]]
+-
+-
+-class Table:
+-
+-    def __init__(
+-        self,
+-        schema: TableSchema,
+-        records: Sequence[Record] | None = None,
+-        indexed_fields: Sequence[Sequence[str]] | None = None,
+-        save_callback: Callable[[], None] | None = None,
+-    ) -> None:
+-        self.schema = schema
+-        self._records: dict[object, Record] = {}
+-        self._indexes: dict[IndexDefinition, IndexBucket] = {}
+-        self._save_callback = save_callback
+-        self._last_query_used_index = False
+-
+-        for record in records or []:
+-            prepared_record = self._build_full_record(record)
+-            primary_key_value = prepared_record[self.schema.primary_key]
+-            self._records[primary_key_value] = prepared_record
+-
+-        for index_fields in indexed_fields or []:
+-            normalized_fields = self._normalize_index_fields(index_fields)
+-            self._indexes[normalized_fields] = {}
+-
+-        self._rebuild_all_indexes()
+-
+-    def insert(self, record_data: dict[str, object]) -> Record:
+-        prepared_record = self._build_full_record(record_data)
+-        primary_key_value = prepared_record[self.schema.primary_key]
+-
+-        if primary_key_value in self._records:
+-            raise DuplicateRecordError(
+-                f"Запись с ключом '{primary_key_value}' уже существует."
+-            )
+-
+-        self._records[primary_key_value] = prepared_record
+-        self._after_data_changed()
+-        return deepcopy(prepared_record)
+-
+-    def select(
+-        self,
+-        filters: dict[str, object] | None = None,
+-        sort_by: str | None = None,
+-        descending: bool = False,
+-    ) -> list[Record]:
+-        matched_records = self._filter_records(filters)
+-        if sort_by is not None:
+-            matched_records = self._sort_records(matched_records, sort_by, descending)
+-        return [deepcopy(record) for record in matched_records]
+-
+-    def update(self, primary_key_value: object, updated_values: dict[str, object]) -> Record:
+-        if not updated_values:
+-            raise ValidationError("Нужно передать хотя бы одно поле для обновления.")
+-
+-        typed_primary_key = self._convert_primary_key(primary_key_value)
+-        if typed_primary_key not in self._records:
+-            raise RecordNotFoundError(
+-                f"Запись с ключом '{typed_primary_key}' не найдена."
+-            )
+-
+-        if self.schema.primary_key in updated_values:
+-            raise ValidationError("Изменение первичного ключа не поддерживается.")
+-
+-        record = deepcopy(self._records[typed_primary_key])
+-        field_map = self.schema.field_map
+-
+-        for field_name, raw_value in updated_values.items():
+-            if field_name not in field_map:
+-                raise ValidationError(f"Поля '{field_name}' нет в таблице '{self.schema.name}'.")
+-            record[field_name] = convert_value(raw_value, field_map[field_name].type_name)
+-
+-        self._records[typed_primary_key] = record
+-        self._after_data_changed()
+-        return deepcopy(record)
+-
+-    def delete(self, primary_key_value: object) -> Record:
+-        typed_primary_key = self._convert_primary_key(primary_key_value)
+-        if typed_primary_key not in self._records:
+-            raise RecordNotFoundError(
+-                f"Запись с ключом '{typed_primary_key}' не найдена."
+-            )
+-
+-        deleted_record = self._records.pop(typed_primary_key)
+-        self._after_data_changed()
+-        return deepcopy(deleted_record)
+-
+-    def sort_records(self, field_name: str, descending: bool = False) -> list[Record]:
+-        sorted_records = self._sort_records(self._records.values(), field_name, descending)
+-        return [deepcopy(record) for record in sorted_records]
+-
+-    def create_index(self, field_names: str | Sequence[str]) -> IndexDefinition:
+-        normalized_fields = self._normalize_index_fields(field_names)
+-        if normalized_fields not in self._indexes:
+-            self._indexes[normalized_fields] = {}
+-            self._rebuild_index(normalized_fields)
+-            self._persist()
+-        return normalized_fields
+-
+-    def list_indexes(self) -> list[IndexDefinition]:
+-        return sorted(self._indexes)
+-
+-    @property
+-    def last_query_used_index(self) -> bool:
+-        return self._last_query_used_index
+-
+-    def count(self) -> int:
+-        return len(self._records)
+-
+-    def export_records(self) -> list[Record]:
+-        return [deepcopy(record) for record in self._records.values()]
+-
+-    def _build_full_record(self, record_data: dict[str, object]) -> Record:
+-        field_map = self.schema.field_map
+-        unknown_fields = set(record_data) - set(field_map)
+-        if unknown_fields:
+-            unknown_names = ", ".join(sorted(unknown_fields))
+-            raise ValidationError(f"Неизвестные поля: {unknown_names}.")
+-
+-        missing_fields = [field_name for field_name in field_map if field_name not in record_data]
+-        if missing_fields:
+-            missing_names = ", ".join(missing_fields)
+-            raise ValidationError(f"Не заполнены обязательные поля: {missing_names}.")
+-
+-        prepared_record: Record = {}
+-        for field_name, field in field_map.items():
+-            prepared_record[field_name] = convert_value(record_data[field_name], field.type_name)
+-
+-        return prepared_record
+-
+-    def _filter_records(self, filters: dict[str, object] | None = None) -> list[Record]:
+-        if not filters:
+-            self._last_query_used_index = False
+-            return list(self._records.values())
+-
+-        prepared_filters = self._prepare_filters(filters)
+-        candidate_primary_keys = self._find_index_candidates(prepared_filters)
+-        self._last_query_used_index = candidate_primary_keys is not None
+-
+-        if candidate_primary_keys is None:
+-            candidate_records = list(self._records.values())
+-        else:
+-            candidate_records = [
+-                self._records[primary_key]
+-                for primary_key in candidate_primary_keys
+-                if primary_key in self._records
+-            ]
+-
+-        return self._scan_records(candidate_records, prepared_filters)
+-
+-    def _prepare_filters(self, filters: dict[str, object]) -> dict[str, object]:
+-        field_map = self.schema.field_map
+-        prepared_filters: dict[str, object] = {}
+-
+-        for field_name, raw_value in filters.items():
+-            if field_name not in field_map:
+-                raise ValidationError(f"Фильтрация по полю '{field_name}' невозможна.")
+-            prepared_filters[field_name] = convert_value(raw_value, field_map[field_name].type_name)
+-
+-        return prepared_filters
+-
+-    def _normalize_index_fields(
+-        self,
+-        field_names: str | Sequence[str],
+-    ) -> IndexDefinition:
+-        if isinstance(field_names, str):
+-            normalized_fields = (field_names,)
+-        else:
+-            normalized_fields = tuple(field_names)
+-
+-        if not normalized_fields:
+-            raise ValidationError("Нужно указать хотя бы одно поле для индекса.")
+-        if len(set(normalized_fields)) != len(normalized_fields):
+-            raise ValidationError("Поля в индексе должны быть уникальными.")
+-
+-        for field_name in normalized_fields:
+-            if field_name not in self.schema.field_map:
+-                raise ValidationError(f"Поля '{field_name}' нет в таблице '{self.schema.name}'.")
+-
+-        return normalized_fields
+-
+-    def _find_index_candidates(
+-        self,
+-        prepared_filters: dict[str, object],
+-    ) -> set[object] | None:
+-        matching_indexes = [
+-            index_fields
+-            for index_fields in self._indexes
+-            if all(field_name in prepared_filters for field_name in index_fields)
+-        ]
+-        if not matching_indexes:
+-            return None
+-
+-        best_index = max(matching_indexes, key=len)
+-        lookup_key = tuple(prepared_filters[field_name] for field_name in best_index)
+-        return set(self._indexes[best_index].get(lookup_key, set()))
+-
+-    def _scan_records(
+-        self,
+-        records: Iterable[Record],
+-        prepared_filters: dict[str, object],
+-    ) -> list[Record]:
+-        matched_records = []
+-        for record in records:
+-            if all(record[field_name] == expected for field_name, expected in prepared_filters.items()):
+-                matched_records.append(record)
+-        return matched_records
+-
+-    def _rebuild_all_indexes(self) -> None:
+-        for index_fields in list(self._indexes):
+-            self._rebuild_index(index_fields)
+-
+-    def _rebuild_index(self, index_fields: IndexDefinition) -> None:
+-        index_bucket: IndexBucket = {}
+-        primary_key_name = self.schema.primary_key
+-
+-        for record in self._records.values():
+-            lookup_key = tuple(record[field_name] for field_name in index_fields)
+-            primary_key_value = record[primary_key_name]
+-            index_bucket.setdefault(lookup_key, set()).add(primary_key_value)
+-
+-        self._indexes[index_fields] = index_bucket
+-
+-    def _after_data_changed(self) -> None:
+-        self._rebuild_all_indexes()
+-        self._persist()
+-
+-    def _persist(self) -> None:
+-        if self._save_callback is not None:
+-            self._save_callback()
+-
+-    def _sort_records(
+-        self,
+-        records: Iterable[Record],
+-        field_name: str,
+-        descending: bool,
+-    ) -> list[Record]:
+-        if field_name not in self.schema.field_map:
+-            raise ValidationError(f"Сортировка по полю '{field_name}' невозможна.")
+-
+-        return sorted(records, key=lambda record: record[field_name], reverse=descending)
+-
+-    def _convert_primary_key(self, raw_value: object) -> object:
+-        primary_key_type = self.schema.field_map[self.schema.primary_key].type_name
+-        return convert_value(raw_value, primary_key_type)
+diff --git a/main.py b/main.py
+deleted file mode 100644
+index dac931d..0000000
+--- a/main.py
++++ /dev/null
+@@ -1,45 +0,0 @@
+-from __future__ import annotations
+-
+-import argparse
+-from pathlib import Path
+-
+-from inmemory_db import ConsoleInterface, CsvFileDatabase, InMemoryDatabase, JsonFileDatabase
+-
+-
+-def build_database(backend: str, data_dir: str | None = None):
+-    if backend == "memory":
+-        return InMemoryDatabase()
+-
+-    storage_path = Path(data_dir) if data_dir else Path("data") / backend
+-    if backend == "json":
+-        return JsonFileDatabase(storage_path)
+-    if backend == "csv":
+-        return CsvFileDatabase(storage_path)
+-
+-    raise ValueError(f"Неизвестный backend: {backend}")
+-
+-
+-def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+-    parser = argparse.ArgumentParser(description="Запуск консольной СУБД.")
+-    parser.add_argument(
+-        "--backend",
+-        choices=("memory", "json", "csv"),
+-        default="memory",
+-        help="Тип хранилища данных.",
+-    )
+-    parser.add_argument(
+-        "--data-dir",
+-        help="Каталог для файлового backend. Для memory не используется.",
+-    )
+-    return parser.parse_args(argv)
+-
+-
+-def main(argv: list[str] | None = None) -> None:
+-    args = parse_args(argv)
+-    database = build_database(args.backend, args.data_dir)
+-    interface = ConsoleInterface(database=database)
+-    interface.run()
+-
+-
+-if __name__ == "__main__":
+-    main()
+diff --git a/tests/__init__.py b/tests/__init__.py
+index 975dde0..69aa99d 100644
+--- a/tests/__init__.py
++++ b/tests/__init__.py
+@@ -1 +1 @@
+-"""Тестовый пакет для проекта базы данных, работающей в оперативной памяти."""
++"""Tests for task 4."""
+diff --git a/tests/test_cli.py b/tests/test_cli.py
+deleted file mode 100644
+index 77ae10f..0000000
+--- a/tests/test_cli.py
++++ /dev/null
+@@ -1,132 +0,0 @@
+-from __future__ import annotations
+-
+-import unittest
+-
+-from inmemory_db.cli import ConsoleInterface
+-from inmemory_db.exceptions import ValidationError
+-
+-
+-class FakeIO:
+-
+-    def __init__(self, inputs: list[str] | None = None, raises_interrupt: bool = False) -> None:
+-        self._inputs = list(inputs or [])
+-        self._raises_interrupt = raises_interrupt
+-        self.outputs: list[str] = []
+-
+-    def input(self, prompt: str) -> str:
+-        self.outputs.append(prompt)
+-        if self._raises_interrupt:
+-            raise KeyboardInterrupt
+-        if not self._inputs:
+-            raise AssertionError("Недостаточно входных данных для теста.")
+-        return self._inputs.pop(0)
+-
+-    def output(self, message: str) -> None:
+-        self.outputs.append(message)
+-
+-
+-class ConsoleInterfaceTests(unittest.TestCase):
+-    def test_run_handles_full_flow_with_sorting(self) -> None:
+-        fake_io = FakeIO(
+-            [
+-                "1",
+-                "books",
+-                "4",
+-                "id",
+-                "int",
+-                "title",
+-                "str",
+-                "author",
+-                "str",
+-                "year",
+-                "int",
+-                "id",
+-                "7",
+-                "books",
+-                "author",
+-                "2",
+-                "books",
+-                "1",
+-                "Refactoring",
+-                "Martin Fowler",
+-                "1999",
+-                "2",
+-                "books",
+-                "2",
+-                "Clean Code",
+-                "Robert Martin",
+-                "2008",
+-                "3",
+-                "books",
+-                "yes",
+-                "1",
+-                "author",
+-                "Robert Martin",
+-                "6",
+-                "books",
+-                "year",
+-                "desc",
+-                "8",
+-                "0",
+-            ]
+-        )
+-
+-        interface = ConsoleInterface(io_handler=fake_io)
+-        interface.run()
+-
+-        joined_output = "\n".join(fake_io.outputs)
+-        self.assertIn("Текущий backend: memory", joined_output)
+-        self.assertIn("Таблица 'books' успешно создана.", joined_output)
+-        self.assertIn("Индекс создан: author", joined_output)
+-        self.assertIn(
+-            "Запись добавлена: {'id': 1, 'title': 'Refactoring', 'author': 'Martin Fowler', 'year': 1999}",
+-            joined_output,
+-        )
+-        self.assertIn(
+-            "Запись добавлена: {'id': 2, 'title': 'Clean Code', 'author': 'Robert Martin', 'year': 2008}",
+-            joined_output,
+-        )
+-        self.assertIn(
+-            "1. {'id': 2, 'title': 'Clean Code', 'author': 'Robert Martin', 'year': 2008}",
+-            joined_output,
+-        )
+-        self.assertIn("Список таблиц:", joined_output)
+-        self.assertIn("Работа завершена.", joined_output)
+-
+-    def test_run_reports_database_error(self) -> None:
+-        fake_io = FakeIO(["2", "missing", "0"])
+-
+-        interface = ConsoleInterface(io_handler=fake_io)
+-        interface.run()
+-
+-        joined_output = "\n".join(fake_io.outputs)
+-        self.assertIn("Ошибка: Таблица 'missing' не найдена.", joined_output)
+-
+-    def test_run_reports_invalid_command(self) -> None:
+-        fake_io = FakeIO(["42", "0"])
+-
+-        interface = ConsoleInterface(io_handler=fake_io)
+-        interface.run()
+-
+-        self.assertIn("Неизвестная команда. Повторите ввод.", fake_io.outputs)
+-
+-    def test_run_handles_keyboard_interrupt(self) -> None:
+-        fake_io = FakeIO(raises_interrupt=True)
+-
+-        interface = ConsoleInterface(io_handler=fake_io)
+-        interface.run()
+-
+-        self.assertIn("\nРабота завершена пользователем.", fake_io.outputs)
+-
+-    def test_read_positive_int_raises_for_invalid_value(self) -> None:
+-        fake_io = FakeIO(["abc"])
+-        interface = ConsoleInterface(io_handler=fake_io)
+-
+-        with self.assertRaisesRegex(ValidationError, "Нужно ввести целое число."):
+-            interface._read_positive_int("Введите число: ")
+-
+-    def test_read_sort_direction_accepts_desc(self) -> None:
+-        fake_io = FakeIO(["desc"])
+-        interface = ConsoleInterface(io_handler=fake_io)
+-
+-        self.assertTrue(interface._read_sort_direction())
+diff --git a/tests/test_database.py b/tests/test_database.py
+deleted file mode 100644
+index b7248c8..0000000
+--- a/tests/test_database.py
++++ /dev/null
+@@ -1,48 +0,0 @@
+-from __future__ import annotations
+-
+-import unittest
+-
+-from inmemory_db.database import InMemoryDatabase
+-from inmemory_db.exceptions import SchemaError, TableNotFoundError
+-from inmemory_db.models import FieldDefinition
+-
+-
+-class DatabaseTests(unittest.TestCase):
+-    def setUp(self) -> None:
+-        self.database = InMemoryDatabase()
+-        self.fields = [
+-            FieldDefinition(name="id", type_name="int"),
+-            FieldDefinition(name="title", type_name="str"),
+-            FieldDefinition(name="year", type_name="int"),
+-        ]
+-
+-    def test_create_and_get_table(self) -> None:
+-        created_table = self.database.create_table("books", self.fields, "id")
+-        fetched_table = self.database.get_table("books")
+-
+-        self.assertIs(created_table, fetched_table)
+-        self.assertEqual(fetched_table.schema.primary_key, "id")
+-
+-    def test_create_table_raises_for_duplicate_name(self) -> None:
+-        self.database.create_table("books", self.fields, "id")
+-
+-        with self.assertRaises(SchemaError):
+-            self.database.create_table("books", self.fields, "id")
+-
+-    def test_get_table_raises_for_missing_table(self) -> None:
+-        with self.assertRaises(TableNotFoundError):
+-            self.database.get_table("missing")
+-
+-    def test_list_tables_returns_all_created_tables(self) -> None:
+-        self.database.create_table("books", self.fields, "id")
+-        self.database.create_table(
+-            "authors",
+-            [
+-                FieldDefinition(name="id", type_name="int"),
+-                FieldDefinition(name="name", type_name="str"),
+-            ],
+-            "id",
+-        )
+-
+-        table_names = sorted(table.schema.name for table in self.database.list_tables())
+-        self.assertEqual(table_names, ["authors", "books"])
+diff --git a/tests/test_file_databases.py b/tests/test_file_databases.py
+deleted file mode 100644
+index 7d15516..0000000
+--- a/tests/test_file_databases.py
++++ /dev/null
+@@ -1,85 +0,0 @@
+-"""Тесты для баз данных, использующих файлы JSON и CSV."""
+-
+-from __future__ import annotations
+-
+-import tempfile
+-import unittest
+-from pathlib import Path
+-
+-from inmemory_db.database import CsvFileDatabase, JsonFileDatabase
+-from inmemory_db.exceptions import StorageError
+-from inmemory_db.models import FieldDefinition
+-
+-
+-class FileDatabaseMixin:
+-
+-    database_class = None
+-
+-    def setUp(self) -> None:
+-        self.temporary_directory = tempfile.TemporaryDirectory()
+-        self.addCleanup(self.temporary_directory.cleanup)
+-        self.fields = [
+-            FieldDefinition(name="id", type_name="int"),
+-            FieldDefinition(name="title", type_name="str"),
+-            FieldDefinition(name="author", type_name="str"),
+-        ]
+-
+-    def create_database(self):
+-        return self.database_class(self.temporary_directory.name)
+-
+-    def test_table_and_records_are_persisted_between_instances(self) -> None:
+-        database = self.create_database()
+-        table = database.create_table("books", self.fields, "id")
+-        table.insert({"id": "1", "title": "DDD", "author": "Eric Evans"})
+-        table.create_index("author")
+-
+-        reloaded_database = self.create_database()
+-        reloaded_table = reloaded_database.get_table("books")
+-
+-        self.assertEqual(reloaded_table.select({"author": "Eric Evans"})[0]["title"], "DDD")
+-        self.assertEqual(reloaded_table.list_indexes(), [("author",)])
+-
+-    def test_updates_and_deletes_are_persisted(self) -> None:
+-        database = self.create_database()
+-        table = database.create_table("books", self.fields, "id")
+-        table.insert({"id": "1", "title": "Initial", "author": "Author"})
+-        table.update("1", {"title": "Updated"})
+-        table.delete("1")
+-
+-        reloaded_database = self.create_database()
+-        reloaded_table = reloaded_database.get_table("books")
+-        self.assertEqual(reloaded_table.select(), [])
+-
+-    def test_list_tables_loads_persisted_table_names(self) -> None:
+-        database = self.create_database()
+-        database.create_table("books", self.fields, "id")
+-
+-        reloaded_database = self.create_database()
+-        table_names = [table.schema.name for table in reloaded_database.list_tables()]
+-        self.assertEqual(table_names, ["books"])
+-
+-
+-class JsonFileDatabaseTests(FileDatabaseMixin, unittest.TestCase):
+-    database_class = JsonFileDatabase
+-
+-    def test_invalid_json_raises_storage_error(self) -> None:
+-        bad_file = Path(self.temporary_directory.name) / "books.json"
+-        bad_file.write_text("{bad json", encoding="utf-8")
+-
+-        database = self.create_database()
+-        with self.assertRaises(StorageError):
+-            database.get_table("books")
+-
+-
+-class CsvFileDatabaseTests(FileDatabaseMixin, unittest.TestCase):
+-    database_class = CsvFileDatabase
+-
+-    def test_invalid_csv_schema_raises_storage_error(self) -> None:
+-        schema_file = Path(self.temporary_directory.name) / "books__schema.csv"
+-        records_file = Path(self.temporary_directory.name) / "books__records.csv"
+-        schema_file.write_text("field_name,type_name,is_primary_key\nid,int,false\n", encoding="utf-8")
+-        records_file.write_text("id\n1\n", encoding="utf-8")
+-
+-        database = self.create_database()
+-        with self.assertRaises(StorageError):
+-            database.get_table("books")
+diff --git a/tests/test_main.py b/tests/test_main.py
+index 8be2bdc..418d4d6 100644
+--- a/tests/test_main.py
++++ b/tests/test_main.py
+@@ -3,34 +3,11 @@ from __future__ import annotations
+ import unittest
+ from unittest.mock import patch
+ 
+-import main
++from src.db import __main__
+ 
+ 
+-class MainTests(unittest.TestCase):
+-    def test_main_runs_console_interface_with_memory_backend_by_default(self) -> None:
+-        with patch("main.InMemoryDatabase") as database_mock, patch(
+-            "main.ConsoleInterface"
+-        ) as interface_mock:
+-            main.main([])
+-
+-        database_mock.assert_called_once_with()
+-        interface_mock.assert_called_once_with(database=database_mock.return_value)
+-        interface_mock.return_value.run.assert_called_once_with()
+-
+-    def test_main_builds_json_backend_with_custom_directory(self) -> None:
+-        with patch("main.JsonFileDatabase") as database_mock, patch(
+-            "main.ConsoleInterface"
+-        ) as interface_mock:
+-            main.main(["--backend", "json", "--data-dir", "./data/json"])
+-
+-        database_mock.assert_called_once_with(main.Path("./data/json"))
+-        interface_mock.assert_called_once_with(database=database_mock.return_value)
+-
+-    def test_main_builds_csv_backend_with_default_directory(self) -> None:
+-        with patch("main.CsvFileDatabase") as database_mock, patch(
+-            "main.ConsoleInterface"
+-        ) as interface_mock:
+-            main.main(["--backend", "csv"])
+-
+-        database_mock.assert_called_once_with(main.Path("data") / "csv")
+-        interface_mock.assert_called_once_with(database=database_mock.return_value)
++class TestMain(unittest.TestCase):
++    @patch("src.db.__main__.run")
++    def test_main_calls_run(self, run_mock) -> None:
++        __main__.main()
++        run_mock.assert_called_once_with()
+diff --git a/tests/test_models.py b/tests/test_models.py
+deleted file mode 100644
+index 6833f77..0000000
+--- a/tests/test_models.py
++++ /dev/null
+@@ -1,62 +0,0 @@
+-from __future__ import annotations
+-
+-import unittest
+-
+-from inmemory_db.exceptions import SchemaError, ValidationError
+-from inmemory_db.models import FieldDefinition, TableSchema, convert_value, parse_bool
+-
+-
+-class ModelHelpersTests(unittest.TestCase):
+-    def test_parse_bool_supports_multiple_literals(self) -> None:
+-        self.assertTrue(parse_bool("yes"))
+-        self.assertTrue(parse_bool("Да"))
+-        self.assertFalse(parse_bool("0"))
+-        self.assertFalse(parse_bool("нет"))
+-
+-    def test_parse_bool_raises_for_invalid_literal(self) -> None:
+-        with self.assertRaises(ValidationError):
+-            parse_bool("maybe")
+-
+-    def test_convert_value_converts_numeric_types(self) -> None:
+-        self.assertEqual(convert_value("12", "int"), 12)
+-        self.assertEqual(convert_value("12.5", "float"), 12.5)
+-        self.assertEqual(convert_value(" book ", "str"), "book")
+-
+-    def test_convert_value_raises_for_invalid_type(self) -> None:
+-        with self.assertRaises(SchemaError):
+-            convert_value("value", "list")
+-
+-    def test_field_definition_rejects_invalid_field_name(self) -> None:
+-        with self.assertRaises(SchemaError):
+-            FieldDefinition(name="bad field", type_name="str")
+-
+-    def test_table_schema_requires_unique_fields(self) -> None:
+-        fields = [
+-            FieldDefinition(name="id", type_name="int"),
+-            FieldDefinition(name="id", type_name="str"),
+-        ]
+-
+-        with self.assertRaises(SchemaError):
+-            TableSchema(name="books", fields=fields, primary_key="id")
+-
+-    def test_table_schema_requires_existing_primary_key(self) -> None:
+-        fields = [
+-            FieldDefinition(name="id", type_name="int"),
+-            FieldDefinition(name="title", type_name="str"),
+-        ]
+-
+-        with self.assertRaises(SchemaError):
+-            TableSchema(name="books", fields=fields, primary_key="missing")
+-
+-    def test_schema_serialization_roundtrip(self) -> None:
+-        schema = TableSchema(
+-            name="books",
+-            fields=[
+-                FieldDefinition(name="id", type_name="int"),
+-                FieldDefinition(name="title", type_name="str"),
+-            ],
+-            primary_key="id",
+-        )
+-
+-        restored_schema = TableSchema.from_dict(schema.to_dict())
+-        self.assertEqual(restored_schema, schema)
+diff --git a/tests/test_table.py b/tests/test_table.py
+index ac43780..4eab7a9 100644
+--- a/tests/test_table.py
++++ b/tests/test_table.py
+@@ -1,167 +1,32 @@
+ from __future__ import annotations
+ 
+ import unittest
+-from unittest.mock import Mock
+ 
+-from inmemory_db.exceptions import (
+-    DuplicateRecordError,
+-    RecordNotFoundError,
+-    ValidationError,
+-)
+-from inmemory_db.models import FieldDefinition, TableSchema
+-from inmemory_db.table import Table
++from src.db.backend.errors import MissingColumnError, UnknownColumnError
++from src.db.backend.table import Table
+ 
+ 
+-class TableTests(unittest.TestCase):
+-    def setUp(self) -> None:
+-        schema = TableSchema(
+-            name="books",
+-            fields=[
+-                FieldDefinition(name="id", type_name="int"),
+-                FieldDefinition(name="title", type_name="str"),
+-                FieldDefinition(name="author", type_name="str"),
+-                FieldDefinition(name="year", type_name="int"),
+-                FieldDefinition(name="available", type_name="bool"),
+-            ],
+-            primary_key="id",
+-        )
+-        self.table = Table(schema)
+-        self.table.insert(
+-            {
+-                "id": "2",
+-                "title": "Clean Code",
+-                "author": "Robert Martin",
+-                "year": "2008",
+-                "available": "yes",
+-            }
+-        )
+-        self.table.insert(
+-            {
+-                "id": "1",
+-                "title": "Refactoring",
+-                "author": "Martin Fowler",
+-                "year": "1999",
+-                "available": "no",
+-            }
+-        )
++class TestTable(unittest.TestCase):
++    def test_insert_record(self) -> None:
++        table = Table(("id", "name"))
++        table.insert_record({"id": 1, "name": "Иван"})
+ 
+-    def test_insert_converts_types(self) -> None:
+-        inserted_record = self.table.insert(
+-            {
+-                "id": "3",
+-                "title": "DDD",
+-                "author": "Eric Evans",
+-                "year": "2003",
+-                "available": "true",
+-            }
+-        )
++        self.assertEqual(table.records, [{"id": 1, "name": "Иван"}])
+ 
+-        self.assertEqual(inserted_record["id"], 3)
+-        self.assertEqual(inserted_record["year"], 2003)
+-        self.assertTrue(inserted_record["available"])
++    def test_insert_record_with_unknown_column(self) -> None:
++        table = Table(("id", "name"))
+ 
+-    def test_insert_raises_for_duplicate_primary_key(self) -> None:
+-        with self.assertRaises(DuplicateRecordError):
+-            self.table.insert(
+-                {
+-                    "id": "1",
+-                    "title": "Other",
+-                    "author": "Author",
+-                    "year": "2000",
+-                    "available": "yes",
+-                }
+-            )
++        with self.assertRaises(UnknownColumnError):
++            table.insert_record({"id": 1, "name": "Иван", "age": 20})
+ 
+-    def test_select_returns_filtered_records(self) -> None:
+-        records = self.table.select({"available": "yes"})
++    def test_insert_record_with_missing_column(self) -> None:
++        table = Table(("id", "name"))
+ 
+-        self.assertEqual(len(records), 1)
+-        self.assertEqual(records[0]["title"], "Clean Code")
++        with self.assertRaises(MissingColumnError):
++            table.insert_record({"id": 1})
+ 
+-    def test_select_supports_sorting(self) -> None:
+-        records = self.table.select(sort_by="year", descending=True)
++    def test_select_records_without_filters(self) -> None:
++        table = Table(("id", "name"))
++        table.insert_record({"id": 1, "name": "Иван"})
+ 
+-        self.assertEqual([record["year"] for record in records], [2008, 1999])
+-
+-    def test_select_raises_for_unknown_filter_field(self) -> None:
+-        with self.assertRaises(ValidationError):
+-            self.table.select({"unknown": "value"})
+-
+-    def test_update_changes_existing_record(self) -> None:
+-        updated = self.table.update("2", {"title": "Clean Code 2", "available": "false"})
+-
+-        self.assertEqual(updated["title"], "Clean Code 2")
+-        self.assertFalse(updated["available"])
+-
+-    def test_update_raises_for_missing_record(self) -> None:
+-        with self.assertRaises(RecordNotFoundError):
+-            self.table.update("99", {"title": "Missing"})
+-
+-    def test_delete_removes_record(self) -> None:
+-        deleted = self.table.delete("1")
+-
+-        self.assertEqual(deleted["title"], "Refactoring")
+-        self.assertEqual(self.table.count(), 1)
+-
+-    def test_delete_raises_for_missing_record(self) -> None:
+-        with self.assertRaises(RecordNotFoundError):
+-            self.table.delete("99")
+-
+-    def test_sort_records_returns_ascending_order(self) -> None:
+-        records = self.table.sort_records("id")
+-        self.assertEqual([record["id"] for record in records], [1, 2])
+-
+-    def test_sort_records_returns_descending_order(self) -> None:
+-        records = self.table.sort_records("title", descending=True)
+-        self.assertEqual([record["title"] for record in records], ["Refactoring", "Clean Code"])
+-
+-    def test_sort_records_raises_for_unknown_field(self) -> None:
+-        with self.assertRaises(ValidationError):
+-            self.table.sort_records("missing")
+-
+-    def test_create_index_adds_single_and_composite_indexes(self) -> None:
+-        self.table.create_index("author")
+-        self.table.create_index(["author", "year"])
+-
+-        self.assertEqual(self.table.list_indexes(), [("author",), ("author", "year")])
+-
+-    def test_select_uses_index_when_available(self) -> None:
+-        self.table.create_index("author")
+-
+-        records = self.table.select({"author": "Robert Martin"})
+-
+-        self.assertTrue(self.table.last_query_used_index)
+-        self.assertEqual(len(records), 1)
+-        self.assertEqual(records[0]["id"], 2)
+-
+-    def test_update_rebuilds_indexes(self) -> None:
+-        self.table.create_index("available")
+-        self.table.update("2", {"available": "no"})
+-
+-        self.assertEqual(self.table.select({"available": "yes"}), [])
+-        self.assertEqual(len(self.table.select({"available": "no"})), 2)
+-
+-    def test_delete_rebuilds_indexes(self) -> None:
+-        self.table.create_index("author")
+-        self.table.delete("2")
+-
+-        self.assertEqual(self.table.select({"author": "Robert Martin"}), [])
+-
+-    def test_persist_callback_is_called_after_changes(self) -> None:
+-        callback = Mock()
+-        schema = TableSchema(
+-            name="authors",
+-            fields=[
+-                FieldDefinition(name="id", type_name="int"),
+-                FieldDefinition(name="name", type_name="str"),
+-            ],
+-            primary_key="id",
+-        )
+-        table = Table(schema, save_callback=callback)
+-
+-        table.insert({"id": "1", "name": "Fowler"})
+-        table.create_index("name")
+-        table.update("1", {"name": "Martin Fowler"})
+-        table.delete("1")
+-
+-        self.assertEqual(callback.call_count, 4)
++        self.assertEqual(table.select_records(), [{"id": 1, "name": "Иван"}])
