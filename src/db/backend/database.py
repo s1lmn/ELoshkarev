@@ -14,6 +14,10 @@ class Database(ABC):
 
         self._save_table(table_name, Table(columns))
 
+    def get_columns(self, table_name: str) -> tuple[str, ...]:
+        table = self._load_table(table_name)
+        return table.columns
+
     def insert_record(self, table_name: str, record: dict[str, Any]) -> None:
         table = self._load_table(table_name)
         table.insert_record(record)

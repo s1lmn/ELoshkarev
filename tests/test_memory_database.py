@@ -24,6 +24,9 @@ class TestMemoryDatabase(unittest.TestCase):
             [{"student_id": 2, "name": "Мария"}],
         )
 
+    def test_get_columns(self) -> None:
+        self.assertEqual(self.db.get_columns("students"), ("student_id", "name"))
+
     def test_insert_missing_column_raises_error(self) -> None:
         with self.assertRaises(MissingColumnError):
             self.db.insert_record("students", {"student_id": 1})

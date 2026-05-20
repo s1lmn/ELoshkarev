@@ -20,3 +20,7 @@ class UnknownColumnError(DatabaseError):
 
 class InvalidStorageDataError(DatabaseError):
     pass
+
+
+class StorageAccessError(DatabaseError):
+    pass

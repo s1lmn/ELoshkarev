@@ -21,6 +21,19 @@ class TestTUI(unittest.TestCase):
         print_mock.assert_any_call("Таблица 'students' создана.")
 
     @patch("builtins.print")
+    @patch("builtins.input", side_effect=["students", "1", "Иван"])
+    def test_insert_record_uses_public_columns_interface(self, input_mock, print_mock) -> None:
+        self.db.create_table("students", ("student_id", "name"))
+
+        self.tui._insert_record()
+
+        self.assertEqual(
+            self.db.select_records("students"),
+            [{"student_id": "1", "name": "Иван"}],
+        )
+        print_mock.assert_any_call("Запись добавлена.")
+
+    @patch("builtins.print")
     @patch("builtins.input", side_effect=["bad", "0", "2"])
     def test_read_positive_int(self, input_mock, print_mock) -> None:
         result = self.tui._read_positive_int("Количество: ")

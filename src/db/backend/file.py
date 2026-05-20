@@ -5,14 +5,25 @@ from pathlib import Path
 from typing import Any
 
 from .database import Database
-from .errors import InvalidStorageDataError, TableNotFoundError
+from .errors import (
+    InvalidStorageDataError,
+    MissingColumnError,
+    StorageAccessError,
+    TableNotFoundError,
+    UnknownColumnError,
+)
 from .table import Table
 
 
 class FileDatabase(Database):
     def __init__(self, directory: str = "data") -> None:
         self.directory = Path(directory)
-        self.directory.mkdir(parents=True, exist_ok=True)
+        try:
+            self.directory.mkdir(parents=True, exist_ok=True)
+        except OSError as error:
+            raise StorageAccessError(
+                f"Не удалось подготовить каталог хранилища: {self.directory}."
+            ) from error
 
     def _table_exists(self, table_name: str) -> bool:
         return self._get_table_path(table_name).exists()
@@ -29,18 +40,27 @@ class FileDatabase(Database):
             raise InvalidStorageDataError(
                 "Файл таблицы содержит некорректный JSON."
             ) from error
+        except OSError as error:
+            raise StorageAccessError(
+                f"Не удалось прочитать файл таблицы: {table_path}."
+            ) from error
 
         return self._deserialize_table(data)
 
     def _save_table(self, table_name: str, table: Table) -> None:
         table_path = self._get_table_path(table_name)
-        with table_path.open("w", encoding="utf-8") as file:
-            json.dump(
-                self._serialize_table(table),
-                file,
-                ensure_ascii=False,
-                indent=2,
-            )
+        try:
+            with table_path.open("w", encoding="utf-8") as file:
+                json.dump(
+                    self._serialize_table(table),
+                    file,
+                    ensure_ascii=False,
+                    indent=2,
+                )
+        except OSError as error:
+            raise StorageAccessError(
+                f"Не удалось записать файл таблицы: {table_path}."
+            ) from error
 
     def _get_table_path(self, table_name: str) -> Path:
         return self.directory / f"{table_name}.json"
@@ -54,11 +74,42 @@ class FileDatabase(Database):
 
     @staticmethod
     def _deserialize_table(data: dict[str, Any]) -> Table:
+        if not isinstance(data, dict):
+            raise InvalidStorageDataError(
+                "Файл таблицы имеет некорректную структуру."
+            )
+
         if "columns" not in data or "records" not in data:
             raise InvalidStorageDataError(
                 "Файл таблицы имеет некорректную структуру."
             )
 
-        columns = tuple(data["columns"])
-        records = data.get("records", [])
-        return Table(columns, records)
+        columns_data = data["columns"]
+        records_data = data["records"]
+
+        if not isinstance(columns_data, list) or not columns_data:
+            raise InvalidStorageDataError(
+                "Поле columns должно быть непустым списком."
+            )
+        if any(not isinstance(column, str) or not column.strip() for column in columns_data):
+            raise InvalidStorageDataError(
+                "Все имена колонок должны быть непустыми строками."
+            )
+        if len(set(columns_data)) != len(columns_data):
+            raise InvalidStorageDataError("Имена колонок должны быть уникальными.")
+
+        if not isinstance(records_data, list):
+            raise InvalidStorageDataError("Поле records должно быть списком.")
+        if any(not isinstance(record, dict) for record in records_data):
+            raise InvalidStorageDataError(
+                "Каждая запись в records должна быть словарём."
+            )
+
+        columns = tuple(columns_data)
+
+        try:
+            return Table(columns, records_data)
+        except (MissingColumnError, UnknownColumnError) as error:
+            raise InvalidStorageDataError(
+                "Файл таблицы содержит некорректные записи."
+            ) from error

@@ -59,7 +59,7 @@ class TUI:
 
     def _insert_record(self) -> None:
         table_name = input("Имя таблицы: ").strip()
-        columns = self.database._load_table(table_name).columns
+        columns = self.database.get_columns(table_name)
         record: dict[str, str] = {}
 
         for column in columns:
